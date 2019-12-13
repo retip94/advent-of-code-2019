@@ -1,8 +1,8 @@
 class DayOne:
     def __init__(self):
         f = open("input.txt", "r")
-        input = f.read()
-        self.modules_masses = set(map(lambda x: int(x), input.split('\n')))
+        modules_input = f.read()
+        self.modules_masses = set(map(lambda x: int(x), modules_input.split('\n')))
         self.fuel = 0
 
     def part_one(self):
