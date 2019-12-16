@@ -1,11 +1,20 @@
 class Computer:
-    def __init__(self, input_path, input_value):
+    def __init__(self, input_path):
         self.input_path = input_path
-        self.__reset_input(input_path)
-        self.input_value = input_value
-        self.output_value = input_value
+        self.__reset_intcode(input_path)
+        self.inputs = []
 
-    def __reset_input(self, input_path):
+    def input(self, value):
+        if isinstance(value, list):
+            for v in value:
+                self.inputs.append(v)
+        else:
+            self.inputs.append(value)
+
+    def reset_input(self):
+        self.inputs = []
+
+    def __reset_intcode(self, input_path):
         f = open(input_path, "r")
         intcode_input = f.read()
         self.intcode = list(map(lambda x: int(x), intcode_input.split(',')))
@@ -46,9 +55,15 @@ class Computer:
                 target = self.intcode[i + 1]
                 i += 2
                 if instruction['opcode'] == 3:
-                    self.intcode[target] = self.input_value
+                    try:
+                        self.intcode[target] = self.inputs.pop(0)
+                    except IndexError:
+                        print("INDEX ERROR")
+                        break
                 else:
                     outputs.append(self.intcode[target])
+                    # return self.intcode, [self.intcode[target]]
+
             elif instruction['opcode'] in [5, 6]:
                 arg1 = self.intcode[i + 1] if instruction['par1'] else self.intcode[self.intcode[i + 1]]
                 target = self.intcode[i + 2] if instruction['par2'] else self.intcode[self.intcode[i + 2]]
@@ -69,7 +84,7 @@ class Computer:
     def find_starting_values_for_result(self, result):
         for i in range(0, 100):
             for j in range(0, 100):
-                self.__reset_input(self.input_path)
+                self.__reset_intcode(self.input_path)
                 self.set_starting_values(i, j)
                 if result == self.calculate()[0][0]:
                     return 100 * i + j

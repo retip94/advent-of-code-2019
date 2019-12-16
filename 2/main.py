@@ -1,7 +1,7 @@
 import Common.computer as comp
 
 input_path = './input.txt'
-computer = comp.Computer(input_path, 0)
+computer = comp.Computer(input_path)
 computer.set_starting_values(12, 2)
 print("answer for part1 is: ", computer.calculate()[0][0])
 # 5098658
