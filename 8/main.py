@@ -71,7 +71,6 @@ class Image:
 
 
 image = Image(25,6)
-# print(image.get_part_one_result())
-print(image.layers)
-print(image.merge_layers())
+print("answer for part1 is: ", image.get_part_one_result())
+image.merge_layers()
 print(image)
