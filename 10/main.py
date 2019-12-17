@@ -1,20 +1,32 @@
 import time
+import math
 
 
 class Asteroid:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.visible_asteroids = []
+        self.visible_asteroids = {}
 
     def __repr__(self):
         return "(x:{}, y:{})".format(self.x, self.y)
 
     def add_visible_asteroid(self, asteroid):
-        self.visible_asteroids.append(asteroid)
+        angle = self.get_angle_between_asteroids(asteroid)
+        self.visible_asteroids[asteroid] = angle
 
     def get_distance_to_asteroid(self, target_asteroid):
         return abs(target_asteroid.x - self.x) + abs(target_asteroid.y - self.y)
+
+    def get_angle_between_asteroids(self, target_ateroid):
+        delta_x = target_ateroid.x - self.x
+        delta_y = self.y - target_ateroid.y
+        angle = math.atan2(delta_x, delta_y)
+        angle = (math.degrees(angle) + 360) % 360
+        return angle
+
+    def get_visible_asteroids_sorted_by_angle(self):
+        return {k: v for k, v in sorted(self.visible_asteroids.items(), key=lambda item: item[1])}
 
 
 class Space:
@@ -24,7 +36,6 @@ class Space:
         self.width = len(self.space_rows[0])
         self.height = len(self.space_rows)
         self.asteroids = self.__map_asteroids()
-
 
     def __map_asteroids(self):
         asteroids = []
@@ -49,7 +60,7 @@ class Space:
                         return False
             else:
                 result = (line_params['a'] * asteroid.x + line_params['b'])
-                if asteroid.y == round(result,5):
+                if asteroid.y == round(result, 5):
                     if starting_asteroid.get_distance_to_asteroid(asteroid) > distance:
                         continue
                     if line_params['go_right_or_up'] == (asteroid.x > starting_asteroid.x):
@@ -71,7 +82,6 @@ class Space:
         for starting_asteroid in self.asteroids:
             self.__find_visible_asteroids(starting_asteroid)
 
-
     def __find_visible_asteroids(self, starting_asteroid):
         for asteroid in self.asteroids:
             if asteroid == starting_asteroid:
@@ -89,19 +99,30 @@ class Space:
             if len(asteroid.visible_asteroids) > max_visible_asteroids:
                 max_visible_asteroids = len(asteroid.visible_asteroids)
                 max_asteroid = asteroid
-        return "{} with {} visible asteroids [index: {}]".format(max_asteroid, max_visible_asteroids, self.asteroids.index(max_asteroid))
+        return "{} with {} visible asteroids [index: {}]".format(max_asteroid, max_visible_asteroids,
+                                                                 self.asteroids.index(max_asteroid))
 
     def part_two(self, asteroid_id):
         station = self.asteroids[asteroid_id]
-        self.__find_visible_asteroids(station)
+        counter = 0
+        while True:
+            self.__find_visible_asteroids(station)
+            sorted_visible_asteroids = station.get_visible_asteroids_sorted_by_angle()
+            for visible_asteroid in sorted_visible_asteroids:
+                counter += 1
+                if (counter == 200):
+                    result = visible_asteroid.x * 100 + visible_asteroid.y
+                    return "The {}th asteroid to be vaporized is at {}. Result is={}".format(counter, visible_asteroid,
+                                                                                             result)
+                self.asteroids.remove(visible_asteroid)
 
-        return station
 
 time_now = time.time()
 input_path = './input.txt'
 space = Space(input_path)
 print(space.asteroids)
 # print(space.get_asteroid_with_max_number_of_visible_asteroids())
+
 # we get id from part1
-print(space.part_two(205))
+print(space.part_two(350))
 print(time.time() - time_now)
