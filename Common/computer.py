@@ -2,6 +2,8 @@ class Computer:
     def __init__(self, input_path):
         self.input_path = input_path
         self.__reset_intcode(input_path)
+        for _ in range(0, 10000):
+            self.intcode.append(0)
         self.inputs = []
         self.i = 0
         self.relative_base = 0
@@ -32,12 +34,12 @@ class Computer:
         self.intcode[1] = address1
         self.intcode[2] = address2
 
-    def calculate(self, debug=False):
+    def calculate(self, debug=False, painting=False):
         outputs = []
         while self.i < len(self.intcode):
             instruction = self.__get_opcode_and_parameters(self.intcode[self.i])
             if debug:
-                print(self.i, self.intcode[self.i])
+                print(self.i, self.intcode[self.i:self.i+4])
             try:
                 arg1 = self.intcode[self.i + 1] if instruction['par1'] == 1 \
                     else self.intcode[self.intcode[self.i + 1]] if instruction['par1'] == 0 \
@@ -50,6 +52,8 @@ class Computer:
             except IndexError:
                 pass
             if instruction['opcode'] == 99:
+                if painting:
+                    return None
                 return self.intcode, outputs
             elif instruction['opcode'] in [1, 2, 7, 8]:
                 self.i += 4
@@ -70,8 +74,8 @@ class Computer:
                     if debug:
                         print('Changing {} address to 1 if {}=={} else to 0'.format(arg3, arg1, arg2))
             elif instruction['opcode'] == 3:
-                arg1 = self.intcode[self.i + 1] if instruction['par1'] == 0 else self.relative_base + self.intcode[
-                    self.i + 1]
+                arg1 = self.intcode[self.i + 1] if instruction['par1'] == 0 \
+                    else self.relative_base + self.intcode[self.i + 1]
                 self.i += 2
                 try:
                     self.intcode[arg1] = self.inputs.pop(0)
@@ -84,6 +88,8 @@ class Computer:
                 self.i += 2
                 outputs.append(arg1)
                 # return self.intcode, arg1
+                if len(outputs) == 2 and painting:
+                    return outputs
             elif instruction['opcode'] in [5, 6]:
                 if instruction['opcode'] == 5:
                     if arg1 != 0:
@@ -91,6 +97,8 @@ class Computer:
                         if debug:
                             print('Changing position to {}'.format(arg2))
                     else:
+                        if debug:
+                            print('Changing position to {}'.format(self.i))
                         self.i += 3
                 if instruction['opcode'] == 6:
                     if arg1 == 0:
@@ -98,6 +106,8 @@ class Computer:
                         if debug:
                             print('Changing position to {}'.format(arg2))
                     else:
+                        if debug:
+                            print('Changing position to {}'.format(self.i))
                         self.i += 3
             elif instruction['opcode'] == 9:
                 self.i += 2
