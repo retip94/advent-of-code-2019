@@ -34,7 +34,13 @@ class Computer:
         self.intcode[1] = address1
         self.intcode[2] = address2
 
-    def calculate(self, debug=False, painting=False):
+    def set(self,address, value):
+        try:
+            self.intcode[address]=value
+        except:
+            print('error setting value')
+
+    def calculate(self, debug=False, painting=False,arcade=False):
         outputs = []
         while self.i < len(self.intcode):
             instruction = self.__get_opcode_and_parameters(self.intcode[self.i])
@@ -52,7 +58,7 @@ class Computer:
             except IndexError:
                 pass
             if instruction['opcode'] == 99:
-                if painting:
+                if painting or arcade:
                     return None
                 return self.intcode, outputs
             elif instruction['opcode'] in [1, 2, 7, 8]:
@@ -74,6 +80,8 @@ class Computer:
                     if debug:
                         print('Changing {} address to 1 if {}=={} else to 0'.format(arg3, arg1, arg2))
             elif instruction['opcode'] == 3:
+                if arcade and len(self.inputs)==0:
+                    return 'input'
                 arg1 = self.intcode[self.i + 1] if instruction['par1'] == 0 \
                     else self.relative_base + self.intcode[self.i + 1]
                 self.i += 2
@@ -82,13 +90,15 @@ class Computer:
                     if debug:
                         print('Changing {} address to input'.format(arg1))
                 except IndexError:
-                    print("INDEX ERROR")
-                    break
+                    self.intcode[arg1] = int(input('INPUT: '))
+                    # print("INDEX ERROR")0
             elif instruction['opcode'] == 4:
                 self.i += 2
                 outputs.append(arg1)
                 # return self.intcode, arg1
                 if len(outputs) == 2 and painting:
+                    return outputs
+                if len(outputs) == 3 and arcade:
                     return outputs
             elif instruction['opcode'] in [5, 6]:
                 if instruction['opcode'] == 5:
